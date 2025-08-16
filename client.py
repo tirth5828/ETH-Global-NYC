@@ -156,3 +156,32 @@ async def handle_market_analysis(ctx: Context, sender: str, msg: MarketAnalysis)
         ctx.logger.info(f"{i}. {rec}")
 if __name__ == "__main__":
     agent.run()
+
+
+'''
+"""
+Fixed Investment Portfolio Client - Works with bulletproof router
+"""
+
+# Optional: Add a periodic query function
+@agent.on_interval(period=300.0)  # Every 5 minutes
+async def periodic_routing_check(ctx: Context):
+    """Send a periodic routing query for monitoring"""
+    
+    query = RouteQuery(
+        src_chain="eth",
+        src_token="Wrapped Ether",
+        dst_chain="eth",
+        dst_token="USD Coin", 
+        top_k=1
+    )
+    
+    try:
+        ctx.logger.info("🔄 Periodic routing check...")
+        await ctx.send(ROUTING_AGENT_ADDRESS, query)
+    except Exception as e:
+        ctx.logger.error(f"❌ Periodic routing error: {e}")
+
+if __name__ == "__main__":
+    agent.run()
+'''
