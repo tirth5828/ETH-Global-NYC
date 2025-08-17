@@ -6,12 +6,12 @@ from openai import OpenAI
 from time import sleep
 
 # Set your API keys
-os.environ["CDP_API_KEY_ID"] = "bd69e334-6557-4eeb-938f-66fa9048b413"
-os.environ["CDP_API_KEY_SECRET"] = "60+8NEZplaBKdzaOMDQ8GoEXzc+zd5m8Gd3IVAnJ+2ODqLK+GMSqxsEROiSmSbxSWK3ihIvC0bEdI/7RgLpY7g=="
-# os.environ["OPENAI_API_KEY"] = "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"   # <-- replace with your key
+os.environ["CDP_API_KEY_ID"] = ""
+os.environ["CDP_API_KEY_SECRET"] = ""
+# os.environ["OPENAI_API_KEY"] = ""   # <-- replace with your key
 
 client = OpenAI(
-    api_key = "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"
+    api_key = ""
 )
 
 
