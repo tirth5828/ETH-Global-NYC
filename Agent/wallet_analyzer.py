@@ -6,12 +6,12 @@ from openai import OpenAI
 from time import sleep
 
 # Set your API keys
-os.environ["CDP_API_KEY_ID"] = ""
-os.environ["CDP_API_KEY_SECRET"] = ""
-# os.environ["OPENAI_API_KEY"] = ""   # <-- replace with your key
+os.environ["CDP_API_KEY_ID"] = "bd69e334-6557-4eeb-938f-66fa9048b413"
+os.environ["CDP_API_KEY_SECRET"] = "60+8NEZplaBKdzaOMDQ8GoEXzc+zd5m8Gd3IVAnJ+2ODqLK+GMSqxsEROiSmSbxSWK3ihIvC0bEdI/7RgLpY7g=="
+os.environ["OPENAI_API_KEY"] = "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"   # <-- replace with your key
 
 client = OpenAI(
-    api_key = ""
+    api_key=os.environ["OPENAI_API_KEY"] 
 )
 
 
@@ -62,12 +62,47 @@ async def fetch_balances(cdp, address, chain):
     return balances_price
 
 
+
+def categorize_tokens(tokens):
+    wallet_tokens = []
+    defi_tokens = []
+    miscellaneous_tokens = []
+
+    for t, data in tokens.items():
+        name = data["symbol"].lower()
+        symbol = data["symbol"].lower()
+
+        # Heuristic rules for DeFi/farm/airdrop tokens
+        if (
+            "moo" in name
+            or "farm" in name
+            or "stake" in name
+            or "lp" in symbol
+            or "stk" in symbol
+            or "moo" in symbol
+            or "cake" in symbol 
+            or "mw" in symbol
+        ):
+            data['protocol'] = "DeFi"
+            defi_tokens.append(data)
+        elif (
+             "airdrop" in name
+            or "reward" in name
+        ):
+            miscellaneous_tokens.append(data)
+        else:
+            wallet_tokens.append(data)
+
+    return wallet_tokens, defi_tokens, miscellaneous_tokens
+
+
+
+
 async def get_wallet_balances(wallet_address):
 
     async with CdpClient() as cdp:
         # Base balances
         base_balances_price = await fetch_balances(cdp, wallet_address, "base")
-        sleep(2)
 
         # Ethereum balances
         eth_balances_price = await fetch_balances(cdp, wallet_address, "ethereum")
@@ -75,26 +110,16 @@ async def get_wallet_balances(wallet_address):
         # Merge all balances
         all_balances = {**base_balances_price, **eth_balances_price}
 
-        print("\n📊 Combined balances with prices:\n", all_balances)
 
-        # Pass balances through LLM for classification
-        response = client.responses.create(
-            model="gpt-4o-mini",
-            input=f"""
-            Classify the following tokens into three categories: 
-            wallet tokens, DeFi tokens, and miscellaneous tokens.
-            
-            Provide JSON output with keys:
-            - wallet_tokens: list of {{'symbol': str, 'balance': float, 'price': float, 'value_usd': float, 'chain': str}}
-            - defi_tokens: list of {{'protocol': str, 'pool': str, 'balance': float, 'value_usd': float, 'apy': float, 'chain': str}}
-            - miscellaneous_tokens: list of {{'symbol': str, 'balance': float, 'price': float, 'value_usd': float, 'chain': str}}
-            
-            Tokens:\n{all_balances}
-            """,
-            temperature=0.3,
-        )
+        wallet_tokens, defi_tokens, miscellaneous_tokens = categorize_tokens(all_balances)
 
-        print("\n🤖 Classification Result:\n", response.output_text)
+        classified_tokens = {
+            "wallet_tokens": wallet_tokens,
+            "defi_tokens": defi_tokens,
+            "miscellaneous_tokens": miscellaneous_tokens
+        }
+
+        return classified_tokens
 
 
 
